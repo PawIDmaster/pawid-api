@@ -9,9 +9,13 @@ app.use(express.json());
 app.use(cors());
 
 // ── Supabase ──────────────────────────────
+const ws = require('ws');
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_KEY
+  process.env.SUPABASE_SERVICE_KEY,
+  {
+    realtime: { transport: ws }
+  }
 );
 
 // ── Twilio LAZY — solo se conecta cuando hay credenciales reales ──
