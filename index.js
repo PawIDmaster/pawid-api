@@ -306,6 +306,28 @@ function buildFoundMessage(petName, finderPhone, city, message) {
 }
 
 // ============================================
+// DEMO ALERT — para visitas a veterinarias
+// POST /demo-alert
+// ============================================
+app.post('/demo-alert', async (req, res) => {
+  const { phone, owner, petName, city } = req.body;
+  if (!phone) return res.status(400).json({ error: 'Phone requerido' });
+
+  const hora = new Date().toLocaleTimeString('es-CO', {
+    hour: '2-digit', minute: '2-digit', timeZone: 'America/Bogota'
+  });
+
+  const msg = `🐾 *PawID — Alerta de escaneo*\n\nAlguien acaba de escanear la placa de *${petName || 'tu mascota'}*.\n\n📍 ${city || 'Colombia'}\n🕐 ${hora}\n\n_Esta alerta llegó porque alguien escaneó el QR del collar._\n\nauditag.sbs/pawid`;
+
+  const sent = await sendWhatsApp(phone, msg);
+
+  res.json({ success: sent, phone, petName, city, hora });
+});
+
+// ============================================
+// INICIO
+// ============================================
+// ============================================
 // INICIO
 // ============================================
 const PORT = process.env.PORT || 3000;
