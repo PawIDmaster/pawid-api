@@ -333,7 +333,7 @@ app.post('/demo-alert', async (req, res) => {
 app.get('/p/:code', async (req, res) => {
   const { code } = req.params;
   try {
-    const { data: plate, error } = await getSupabase()
+    const { data: plate, error } = await supabase
       .from('plates')
       .select('*, pets(*)')
       .eq('code', code.toUpperCase())
@@ -365,7 +365,7 @@ app.post('/p/:code/activate', async (req, res) => {
           owner_name, owner_phone, owner_email, foto_url } = req.body;
 
   try {
-    const supabase = getSupabase();
+    const supabase = supabase;
 
     // Verificar que la placa existe y está virgen
     const { data: plate } = await supabase
@@ -424,7 +424,7 @@ app.post('/p/:code/lost', async (req, res) => {
   const { code } = req.params;
   const { active } = req.body;
   try {
-    const supabase = getSupabase();
+    const supabase = supabase;
     const { data: plate } = await supabase
       .from('plates')
       .select('pet_id')
