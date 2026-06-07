@@ -325,7 +325,127 @@ app.post('/demo-alert', async (req, res) => {
 
   res.json({ success: sent, phone, petName, city, hora });
 });
+// ============================================
+// PLATAFORMA REAL — rutas de placas
+// ============================================
 
+// GET /p/:code — detecta si placa es virgen o activa
+app.get('/p/:code', async (req, res) => {
+  const { code } = req.params;
+  try {
+    const { data: plate, error } = await getSupabase()
+      .from('plates')
+      .select('*, pets(*)')
+      .eq('code', code.toUpperCase())
+      .single();
+
+    if (error || !plate) {
+      return res.json({ status: 'not_found' });
+    }
+
+    if (plate.status === 'virgin') {
+      return res.json({ status: 'virgin', code: plate.code });
+    }
+
+    return res.json({
+      status: 'activated',
+      code: plate.code,
+      pet: plate.pets
+    });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /p/:code/activate — activa una placa con datos de mascota
+app.post('/p/:code/activate', async (req, res) => {
+  const { code } = req.params;
+  const { nombre, especie, raza, edad, peso, color, microchip,
+          sangre, alergias, vacunas, notas,
+          owner_name, owner_phone, owner_email, foto_url } = req.body;
+
+  try {
+    const supabase = getSupabase();
+
+    // Verificar que la placa existe y está virgen
+    const { data: plate } = await supabase
+      .from('plates')
+      .select('*')
+      .eq('code', code.toUpperCase())
+      .eq('status', 'virgin')
+      .single();
+
+    if (!plate) {
+      return res.status(404).json({ error: 'Placa no encontrada o ya activada' });
+    }
+
+    // Crear perfil del dueño
+    const { data: profile } = await supabase
+      .from('profiles')
+      .insert({ full_name: owner_name, phone: owner_phone, email: owner_email })
+      .select()
+      .single();
+
+    // Crear mascota
+    const { data: pet } = await supabase
+      .from('pets')
+      .insert({
+        owner_id: profile.id,
+        name: nombre,
+        species: especie,
+        breed: raza,
+        age_years: edad,
+        weight_kg: peso,
+        color,
+        microchip,
+        blood_type: sangre,
+        allergies: alergias,
+        notes: notas,
+        photo_url: foto_url,
+        lost_mode: false
+      })
+      .select()
+      .single();
+
+    // Activar placa
+    await supabase
+      .from('plates')
+      .update({ status: 'activated', pet_id: pet.id, activated_at: new Date() })
+      .eq('code', code.toUpperCase());
+
+    res.json({ success: true, pet_id: pet.id, code });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /p/:code/lost — activar/desactivar modo mascota perdida
+app.post('/p/:code/lost', async (req, res) => {
+  const { code } = req.params;
+  const { active } = req.body;
+  try {
+    const supabase = getSupabase();
+    const { data: plate } = await supabase
+      .from('plates')
+      .select('pet_id')
+      .eq('code', code.toUpperCase())
+      .single();
+
+    if (!plate?.pet_id) return res.status(404).json({ error: 'Placa no encontrada' });
+
+    await supabase
+      .from('pets')
+      .update({
+        lost_mode: active,
+        lost_mode_activated_at: active ? new Date() : null
+      })
+      .eq('id', plate.pet_id);
+
+    res.json({ success: true, lost_mode: active });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 // ============================================
 // INICIO
 // ============================================
