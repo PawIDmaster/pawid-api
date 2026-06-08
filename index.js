@@ -360,9 +360,8 @@ app.get('/p/:code', async (req, res) => {
 // POST /p/:code/activate — activa una placa con datos de mascota
 app.post('/p/:code/activate', async (req, res) => {
   const { code } = req.params;
-  const { nombre, especie, raza, edad, peso, color, microchip,
-          sangre, alergias, vacunas, notas,
-          owner_name, owner_phone, owner_email, foto_url } = req.body;
+  const { nombre, especie, raza, dob, peso, color, microchip,
+        sangre, notas, owner_name, owner_phone, owner_email, foto_url } = req.body;
 
   try {
     
@@ -379,33 +378,27 @@ app.post('/p/:code/activate', async (req, res) => {
       return res.status(404).json({ error: 'Placa no encontrada o ya activada' });
     }
 
-    // Crear perfil del dueño
-    const { data: profile } = await supabase
-      .from('profiles')
-      .insert({ full_name: owner_name, phone: owner_phone, email: owner_email })
-      .select()
-      .single();
-
-    // Crear mascota
-    const { data: pet } = await supabase
+// Crear mascota
+    const { data: pet, error: petError } = await supabase
       .from('pets')
       .insert({
-        owner_id: profile.id,
         name: nombre,
         species: especie,
         breed: raza,
-        age_years: edad,
-        weight_kg: peso,
+        dob: dob || null,
+        weight_kg: peso ? parseFloat(peso) : null,
         color,
-        microchip,
+        microship: microchip,
         blood_type: sangre,
-        allergies: alergias,
-        notes: notas,
+        clinical_notes: notas,
         photo_url: foto_url,
-        lost_mode: false
+        lost_mode: false,
+        is_active: true
       })
       .select()
       .single();
+
+    if (petError) return res.status(500).json({ error: petError.message });
 
     // Activar placa
     await supabase
@@ -418,7 +411,6 @@ app.post('/p/:code/activate', async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
-
 // POST /p/:code/lost — activar/desactivar modo mascota perdida
 app.post('/p/:code/lost', async (req, res) => {
   const { code } = req.params;
