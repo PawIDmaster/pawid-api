@@ -335,7 +335,7 @@ app.get('/p/:code', async (req, res) => {
   try {
     const { data: plate, error } = await supabase
       .from('plates')
-      .select('*, pets(*)')
+      .select('*, pets(*, vaccines(*))')
       .eq('code', code.toUpperCase())
       .single();
 
