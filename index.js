@@ -361,7 +361,7 @@ app.get('/p/:code', async (req, res) => {
 app.post('/p/:code/activate', async (req, res) => {
   const { code } = req.params;
   const { nombre, especie, raza, sexo, dob, peso, color, microchip,
-        sangre, notas, alergias, owner_name, owner_phone, owner_email, foto_url } = req.body;
+        sangre, notas, alergias, owner_name, owner_phone, owner_email, foto_url, vacunas } = req.body;
 
   try {
     
@@ -410,7 +410,17 @@ app.post('/p/:code/activate', async (req, res) => {
       .from('plates')
       .update({ status: 'activated', pet_id: pet.id, activated_at: new Date() })
       .eq('code', code.toUpperCase());
-
+// Guardar vacunas si hay
+if (vacunas && vacunas.length > 0) {
+  const vacunasData = vacunas.map(v => ({
+    pet_id: pet.id,
+    name: v.name,
+    applied_date: v.applied_date || null,
+    next_due_date: v.next_due_date || null,
+    vet_name: v.vet_name || null
+  }));
+  await supabase.from('vaccines').insert(vacunasData);
+}
     res.json({ success: true, pet_id: pet.id, code });
   } catch(e) {
     res.status(500).json({ error: e.message });
