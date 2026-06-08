@@ -386,7 +386,7 @@ app.post('/p/:code/activate', async (req, res) => {
         species: especie,
         breed: raza,
         dob: dob || null,
-        weight_kg: peso ? parseFloat(peso) : null,
+        weight: peso ? parseFloat(peso) : null,
         color,
         microchip: microchip,
         blood_type: sangre,
