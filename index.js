@@ -388,7 +388,7 @@ app.post('/p/:code/activate', async (req, res) => {
         dob: dob || null,
         weight_kg: peso ? parseFloat(peso) : null,
         color,
-        microship: microchip,
+        microchip: microchip,
         blood_type: sangre,
         clinical_notes: notas,
         photo_url: foto_url,
