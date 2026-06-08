@@ -360,8 +360,8 @@ app.get('/p/:code', async (req, res) => {
 // POST /p/:code/activate — activa una placa con datos de mascota
 app.post('/p/:code/activate', async (req, res) => {
   const { code } = req.params;
-  const { nombre, especie, raza, dob, peso, color, microchip,
-        sangre, notas, owner_name, owner_phone, owner_email, foto_url } = req.body;
+  const { nombre, especie, raza, sexo, dob, peso, color, microchip,
+        sangre, notas, alergias, owner_name, owner_phone, owner_email, foto_url } = req.body;
 
   try {
     
@@ -380,23 +380,28 @@ app.post('/p/:code/activate', async (req, res) => {
 
 // Crear mascota
     const { data: pet, error: petError } = await supabase
-      .from('pets')
-      .insert({
-        name: nombre,
-        species: especie,
-        breed: raza,
-        dob: dob || null,
-        weight: peso ? parseFloat(peso) : null,
-        color,
-        microchip: microchip,
-        blood_type: sangre,
-        clinical_notes: notas,
-        photo_url: foto_url,
-        lost_mode: false,
-        is_active: true
-      })
-      .select()
-      .single();
+  .from('pets')
+  .insert({
+    name: nombre,
+    species: especie,
+    breed: raza,
+    sex: sexo,
+    dob: dob || null,
+    weight: peso ? parseFloat(peso) : null,
+    color,
+    microchip,
+    blood_type: sangre,
+    clinical_notes: notas,
+    allergies: alergias,
+    photo_url: foto_url,
+    owner_name,
+    owner_phone,
+    owner_email,
+    lost_mode: false,
+    is_active: true
+  })
+  .select()
+  .single();
 
     if (petError) return res.status(500).json({ error: petError.message });
 
