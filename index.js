@@ -411,6 +411,7 @@ app.post('/p/:code/activate', async (req, res) => {
       .update({ status: 'activated', pet_id: pet.id, activated_at: new Date() })
       .eq('code', code.toUpperCase());
 // Guardar vacunas si hay
+    console.log('Vacunas recibidas:', JSON.stringify(vacunas));
 if (vacunas && vacunas.length > 0) {
   const vacunasData = vacunas.map(v => ({
     pet_id: pet.id,
