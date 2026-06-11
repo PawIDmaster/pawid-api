@@ -454,6 +454,21 @@ app.post('/p/:code/lost', async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+// POST /admin/plates/batch — generar lote de placas vírgenes
+app.post('/admin/plates/batch', async (req, res) => {
+  const { quantity } = req.body;
+  if (!quantity || quantity < 1 || quantity > 50) {
+    return res.status(400).json({ error: 'Cantidad entre 1 y 50' });
+  }
+  try {
+    const { data, error } = await supabase.rpc('create_plate_batch', { quantity });
+    if (error) return res.status(500).json({ error: error.message });
+    const codes = data.map(r => r.code);
+    res.json({ success: true, codes, count: codes.length });
+  } catch(e) {
+    res.status(500).json({ error: e.message });
+  }
+});
 // ============================================
 // INICIO
 // ============================================
